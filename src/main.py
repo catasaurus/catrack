@@ -1,33 +1,31 @@
 import jsonlines
+import json
 import pandas as pd
 
 class ExperimentTracker():
     """A lightweight experiment tracker that saves json output to a file
     """
-    def __init__(self, e_args, file_name, sort_column, use_custom_columns=False, custom_columns=None, file_format='json'):
+    def __init__(self, e_args, file_name, sort_column, file_format='json'):
         """
         Args: 
             e_args: columns required to be provided for each new experiment
-            file_name: file for outputs to be saved to
+            file_name file for outputs to be saved to
             sort_column: columns for pandas dataframe to be saved to
             custom_columns: custom column names like e_args
         """
         supported_file_formats = ['json', 'csv']
 
-        self.experiments = {key:[] for key in e_args}
+        self.experiments = {key:None for key in e_args}
         self.args = e_args
         self.file_name = file_name
-        self.experiments_df = pd.DataFrame(self.experiments)
+        self.experiments_df = pd.DataFrame({key:[] for key in e_args})
         self.sort_column = sort_column
-        self.use_custom_columns = use_custom_columns
-        if use_custom_columns:
-            self.custom_columns = custom_columns
         if file_format not in supported_file_formats:
             raise Exception("Specified format to save experiments " + file_format + " not supported. \n" + "You may save files in the following formats: " + ' '.join(supported_file_formats))
         self.file_format = file_format
         if self.file_format == 'json':
             with jsonlines.open(file_name, 'a') as file:
-                file.write(self.experiments)
+                file.write([])
 
     def verify_info(self, info):
         """Verifies if the provided new experiemnt matches the columns provided in __init__
@@ -42,7 +40,7 @@ class ExperimentTracker():
             if i not in self.args:
                 raise Exception("Arg dictionary key: " + i + " not in provided required experiment information")
 
-    def add_experiment(self, info, custom_column_values=None):
+    def add_experiment(self, info):
         """Adds a new experiment
 
         Args:
@@ -54,11 +52,11 @@ class ExperimentTracker():
         """
         self.verify_info(info)
         for key in self.experiments.keys():
-            self.experiments[key].append(info[key])      
-        self.experiments_df = pd.DataFrame(self.experiments).sort_values(by=[self.sort_column])
-        if self.use_custom_columns:
-            for i, j in enumerate(self.custom_columns):
-                self.experiments_df[j] = custom_column_values[i]
+            self.experiments[key] = info[key]   
+            self.experiments_df[key] = [self.experiments_df[key].to_list(), info[key]]
+        # self.experiments_df = pd.DataFrame(self.experiments).sort_values(by=[self.sort_column])
+        with jsonlines.open(self.file_name, 'a') as file:
+            file.write(self.experiments)
         return self.experiments_df
 
     def load_experiments_df(self):
