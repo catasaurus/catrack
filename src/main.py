@@ -24,8 +24,9 @@ class ExperimentTracker():
             raise Exception("Specified format to save experiments " + file_format + " not supported. \n" + "You may save files in the following formats: " + ' '.join(supported_file_formats))
         self.file_format = file_format
         if self.file_format == 'json':
-            with jsonlines.open(file_name, 'a') as file:
-                file.write([])
+             # with jsonlines.open(self.file_name, 'a') as file:
+                 # file.write([])
+            f = open(self.file_name, 'x')
 
     def verify_info(self, info):
         """Verifies if the provided new experiemnt matches the columns provided in __init__
