@@ -26,7 +26,8 @@ class ExperimentTracker():
         if self.file_format == 'json':
              # with jsonlines.open(self.file_name, 'a') as file:
                  # file.write([])
-            f = open(self.file_name, 'x')
+            with open(self.file_name, 'a') as file:
+                pass
 
     def verify_info(self, info):
         """Verifies if the provided new experiemnt matches the columns provided in __init__
@@ -67,3 +68,9 @@ class ExperimentTracker():
             The experiments dataframe
         """
         return self.experiments_df
+    
+    def __str__(self):
+        with jsonlines.open(self.file_name, 'r') as file:
+            lines = list(file)
+        lines_df = pd.DataFrame(lines).sort_values(by=[self.sort_column])
+        return str(lines_df)
